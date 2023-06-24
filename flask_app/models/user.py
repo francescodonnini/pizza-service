@@ -3,6 +3,7 @@ import enum
 from werkzeug.security import generate_password_hash
 
 from flask_app import db
+from flask_app.models.constraint import Constraint
 
 
 class Role(enum.Enum):
@@ -17,8 +18,9 @@ class User(db.Model):
     name = db.Column(db.String(32), nullable=False)
     pw_hash = db.Column(db.String(256), nullable=False)
     role = db.Column(db.Enum(Role, native_enum=True), nullable=False)
-    max_num_of_shifts = db.Column(db.Integer, nullable=False)
-    min_num_of_shifts = db.Column(db.Integer, nullable=False)
+    max_num_of_shifts = db.Column(db.Integer)
+    min_num_of_shifts = db.Column(db.Integer)
+    constraints = db.relationship('Constraint', lazy=True)
 
     def __repr__(self):
         return f'<User {self.email}, {self.name}, {self.last_name}>'
@@ -28,3 +30,26 @@ class User(db.Model):
 
     def set_password(self, pw):
         self.pw_hash = generate_password_hash(pw)
+
+
+def user2json(user: User) -> dict[str, object]:
+    constraints: list[dict[str, object]] = []
+    if user.role == Role.rider:
+        def constraint_mapper(c: Constraint) -> dict[str, object]:
+            return {
+                'category': c.category.name,
+                'date': c.date.isoformat(),
+                'occurrence': c.occurrence.name
+            }
+
+        for c in user.constraints:
+            constraints.append(constraint_mapper(c))
+    return {
+        'email': user.email,
+        'last_name': user.last_name,
+        'name': user.name,
+        'role': user.role.name,
+        'constraints': constraints,
+        'max_num_of_shifts': user.max_num_of_shifts,
+        'min_num_of_shifts': user.min_num_of_shifts
+    }

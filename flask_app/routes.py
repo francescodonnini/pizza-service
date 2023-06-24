@@ -1,14 +1,7 @@
 from flask import jsonify, abort, request
 
-from flask_app.models.constraint import Constraint
-from flask_app.models.request import Request, RequestStat
-from flask_app.models.user import Role
 from flask_app import app, db
-
-
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    return 'Hello'
+from flask_app.models.user import Role, User, user2json
 
 
 @app.route('/login', methods=['POST'])
@@ -22,31 +15,13 @@ def login():
         abort(404)
 
 
-def user2json(user):
-    constraints = []
-    if user.role == Role.rider:
-        def constraint_mapper(c: Constraint):
-            return jsonify({
-                'category': c.category,
-                'date': c.date,
-                'occurrence': c.occurrence
-            })
-
-        constraints += user.constraints.map(constraint_mapper)
-    return jsonify({
-        'email': user.email,
-        'last_name': user.last_name,
-        'name': user.name,
-        'role': user.role.name,
-        'constraints': constraints,
-        'max_num_of_shifts': user.max_num_of_shifts,
-        'min_num_of_shifts': user.min_num_of_shifts
-    })
-
-
-@app.route('/riders', methods=['POST', 'GET'])
+@app.route('/riders', methods=['GET'])
 def riders():
-    pass
+    rider_list = User.query.filter_by(role=Role.rider)
+    json = []
+    for r in rider_list:
+        json.append(user2json(r))
+    return jsonify(json)
 
 
 @app.route('/requests', methods=['POST'])
