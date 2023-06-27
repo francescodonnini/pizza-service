@@ -31,6 +31,12 @@ class User(db.Model):
     def set_password(self, pw):
         self.pw_hash = generate_password_hash(pw)
 
+    def __init__(self, email, last_name, name, role):
+        self.email = email
+        self.last_name = last_name
+        self.name = name
+        self.role = role
+
 
 def user2json(user: User) -> dict[str, object]:
     constraints: list[dict[str, object]] = []
