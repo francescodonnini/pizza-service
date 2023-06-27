@@ -3,6 +3,9 @@ from flask import jsonify, abort, request
 from flask_app import app, db
 from flask_app.models.user import Role, User, user2json
 from sqlalchemy import exc
+from flask_app.models.constraint import Constraint
+from flask_app.errors import *
+from datetime import datetime
 
 
 @app.route('/login', methods=['POST'])
@@ -46,6 +49,30 @@ def save_rider():
             'message': "Rider has been submitted"
         })
     except exc.IntegrityError as e:
+        return rider_already_exists(e)
+
+
+@app.route('/add_constraint', methods=['POST'])
+def add_constraint():
+    rider = request.json['email']
+    category = request.json['category']
+    date = request.json['date']
+    occurrence = request.json['occurrence']
+    user = db.session.query(User).filter_by(email=rider).first()
+    if user is not None:
+        constraint = Constraint(rider, category, occurrence, datetime.strptime(date, '%Y-%m-%d'))
+        db.session.add(constraint)
+        db.session.commit()
         return jsonify({
-            'code': e.code,
+            'code': "200",
+            'message': "Constraint has been submitted"
         })
+    else:
+        return jsonify({
+            'code': "310",
+            'message': "Constraint error"
+        })
+
+
+
+

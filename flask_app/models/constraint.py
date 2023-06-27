@@ -31,3 +31,11 @@ class Constraint(db.Model):
 
     def __repr__(self):
         return f'<Constraint {self.rider}, {self.category} {self.occurrence} {self.date}>'
+
+    def __init__(self, rider, category, occurrence, date):
+        self.rider = rider
+        self.category = category
+        self.occurrence = occurrence
+        self.date = date
+
+

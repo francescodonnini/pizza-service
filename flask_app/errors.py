@@ -15,6 +15,11 @@ class RiderAlreadyExists(exc.IntegrityError):
     description = 'rider already exists'
 
 
+class UserNotExists(Exception):
+    code = 310
+    description = 'user not exists'
+
+
 @app.errorhandler(InvalidCredentials)
 def invalid_credentials(e):
     return jsonify({
@@ -27,5 +32,17 @@ def invalid_credentials(e):
 def rider_already_exists(e):
     return jsonify({
         'code': e.code,
-        'description' : e.description
+        'description': "rider already exists"
     })
+
+
+@app.errorhandler(UserNotExists)
+def user_not_exists(e):
+    return jsonify({
+        'code': e.code,
+        'description': e.description
+    })
+
+
+
+
