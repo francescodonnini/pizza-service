@@ -92,5 +92,19 @@ def add_request() :
         return jsonify({
             'code': "450",
             'message': "Unknown user"
-    })
+        })
+
+
+@app.route('/show_new_requests', methods=['GET', 'POST'])
+def show_new_requests():
+    recipient = request.json['email']
+    new_requests = db.session.query(Request).all()
+    json = []
+    for n in new_requests:
+        json.append(request2json(n))
+        stat = RequestStat(n.date, n.source, recipient, Response.read)
+        db.session.delete(n)
+        db.session.add(stat)
+    db.session.commit()
+    return jsonify(json)
 

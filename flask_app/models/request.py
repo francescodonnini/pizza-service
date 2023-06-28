@@ -16,6 +16,13 @@ class Request(db.Model):
         self.date = date
 
 
+def request2json(request : Request):
+    return {
+        'source': request.source,
+        'date': request.date
+    }
+
+
 class Response(enum.Enum):
     dismissed = 'dismissed'
     read = 'read'
@@ -28,3 +35,10 @@ class RequestStat(db.Model):
     recipient = db.Column(db.String(256), db.ForeignKey('users_table.email'), primary_key=True, nullable=False)
     response = db.Column(db.Enum(Response), nullable=False)
     __table_args__ = (db.ForeignKeyConstraint([date, source], [Request.date, Request.source]), )
+
+    def __init__(self, date, source, recipient, response):
+        self.date = date
+        self.source = source
+        self.recipient = recipient
+        self.response = response
+
