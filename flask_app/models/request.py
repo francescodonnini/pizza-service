@@ -11,6 +11,10 @@ class Request(db.Model):
     def __repr__(self):
         return f'<Request {self.source}, {self.date}>'
 
+    def __init__(self, source, date):
+        self.source = source
+        self.date = date
+
 
 class Response(enum.Enum):
     dismissed = 'dismissed'

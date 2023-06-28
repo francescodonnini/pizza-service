@@ -4,6 +4,7 @@ from flask_app import app, db
 from flask_app.models.user import Role, User, user2json
 from sqlalchemy import exc
 from flask_app.models.constraint import Constraint
+from flask_app.models.request import *
 from flask_app.errors import *
 from datetime import datetime
 
@@ -69,10 +70,27 @@ def add_constraint():
         })
     else:
         return jsonify({
-            'code': "310",
-            'message': "Constraint error"
+            'code': "450",
+            'message': "Unknown user"
         })
 
 
-
+@app.route('/add_request', methods=['POST'])
+def add_request() :
+    rider = request.json['email']
+    date = request.json['date']
+    user = db.session.query(User).filter_by(email=rider).first()
+    if user is not None:
+        change_request = Request(rider, datetime.strptime(date, '%Y-%m-%d'))
+        db.session.add(change_request)
+        db.session.commit()
+        return jsonify({
+            'code': "200",
+            'message': "Request has been submitted"
+        })
+    else:
+        return jsonify({
+            'code': "450",
+            'message': "Unknown user"
+    })
 
