@@ -16,7 +16,7 @@ class Request(db.Model):
         self.date = date
 
 
-def request2json(request : Request):
+def request2json(request: Request):
     return {
         'source': request.source,
         'date': request.date
@@ -35,6 +35,9 @@ class RequestStat(db.Model):
     recipient = db.Column(db.String(256), db.ForeignKey('users_table.email'), primary_key=True, nullable=False)
     response = db.Column(db.Enum(Response), nullable=False)
     __table_args__ = (db.ForeignKeyConstraint([date, source], [Request.date, Request.source]), )
+
+    def __repr__(self):
+        return f'<RequestStat {self.date}, {self.source}, {self.recipient}, {self.response}>'
 
     def __init__(self, date, source, recipient, response):
         self.date = date

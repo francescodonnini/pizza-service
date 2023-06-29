@@ -1,12 +1,12 @@
-from flask import jsonify, abort, request
+from flask import abort, request
 
-from flask_app import app, db
 from flask_app.models.user import Role, User, user2json
-from sqlalchemy import exc
 from flask_app.models.constraint import Constraint
 from flask_app.models.request import *
 from flask_app.errors import *
 from datetime import datetime
+from flask_app.models.shift import *
+from sqlalchemy import and_
 
 
 @app.route('/login', methods=['POST'])
@@ -107,4 +107,25 @@ def show_new_requests():
         db.session.add(stat)
     db.session.commit()
     return jsonify(json)
+
+
+@app.route('/accept_request', methods=['POST'])
+def accept_request():
+    recipient = request.json['recipient']
+    source = request.json['source']
+    date = datetime.strptime(request.json['date'], '%Y-%m-%d')
+    request_list = db.session.query(RequestStat).filter(and_(RequestStat.source == source, RequestStat.date == date.strftime('%Y-%m-%d'))).all()
+    for r in request_list:
+        db.session.delete(r)
+    plan = db.session.query(Plan).filter(and_(date.strftime('%Y-%m-%d') >= Plan.start, date.strftime('%Y-%m-%d') <= Plan.end)).first()
+    shift = Shift(date, plan.id, recipient)
+    db.session.add(shift)
+    db.session.commit()
+    return jsonify({
+        'code': "200",
+        'message': "You have a new shift"
+    })
+
+
+
 
