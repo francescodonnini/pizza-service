@@ -143,3 +143,20 @@ def get_constraint():
     return jsonify(j_constraints)
 
 
+@app.route('/delete_constraint', methods=['POST'])
+def delete_constraint():
+    date = datetime.strptime(request.json['date'], '%Y-%m-%d').strftime('%Y-%m-%d')
+    rider = request.json['email']
+    constraint = db.session.query(Constraint).filter(and_(Constraint.date == date, Constraint.rider == rider)).first()
+    if constraint is None:
+        return jsonify({
+            'code': "452",
+            'message': "You have not a constraint for the date specified"
+        })
+    db.session.delete(constraint)
+    db.session.commit()
+    return jsonify({
+        'code': "200",
+        'message': "Constraint correctly removed"
+    })
+
