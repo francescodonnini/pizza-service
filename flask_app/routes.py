@@ -6,7 +6,7 @@ from flask_app.errors import *
 from datetime import datetime
 from flask_app.models.shift import *
 from flask_app.models.constraint import *
-from sqlalchemy import and_
+from sqlalchemy import and_, or_
 
 
 @app.route('/login', methods=['POST'])
@@ -133,8 +133,8 @@ def accept_request():
     })
 
 
-@app.route('/get_constraint', methods=['POST'])
-def get_constraint():
+@app.route('/get_constraints', methods=['POST'])
+def get_constraints():
     rider = request.json['email']
     constraints = db.session.query(Constraint).filter_by(rider=rider).all()
     j_constraints = []
@@ -158,5 +158,38 @@ def delete_constraint():
     return jsonify({
         'code': "200",
         'message': "Constraint correctly removed"
+    })
+
+
+@app.route('/fire_rider', methods=['POST'])
+def fire_rider():
+    email = request.json["email"]
+    rider = db.session.query(User).filter_by(email=email).first()
+    if rider is None:
+        return jsonify({
+            'code': "450",
+            'message': "Unknown user"
+        })
+    shifts = db.session.query(Shift).filter_by(rider=email).all()
+    if shifts is not None:
+        for s in shifts:
+            db.session.delete(s)
+    req = db.session.query(Request).filter_by(source=email).all()
+    if req is not None:
+        for r in req:
+            db.session.delete(r)
+    req_stat = db.session.query(RequestStat).filter(or_(RequestStat.source == email, RequestStat.recipient == email)).all()
+    if req_stat is not None:
+        for rs in req_stat:
+            db.session.delete(rs)
+    constraints = db.session.query(Constraint).filter_by(rider=email).all()
+    if constraints is not None:
+        for c in constraints:
+            db.session.delete(c)
+    db.session.delete(rider)
+    db.session.commit()
+    return jsonify({
+        'code': "200",
+        'message': "Rider correctly removed"
     })
 
