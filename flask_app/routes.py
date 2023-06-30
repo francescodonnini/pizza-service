@@ -99,11 +99,18 @@ def add_request() :
 def show_new_requests():
     recipient = request.json['email']
     new_requests = db.session.query(Request).all()
+    read = db.session.query(RequestStat).filter_by(recipient=recipient)
+    there_is = False
     json = []
     for n in new_requests:
-        json.append(request2json(n))
         stat = RequestStat(n.date, n.source, recipient, Response.read)
-        db.session.add(stat)
+        for r in read:
+            if r.date == n.date:
+                there_is = True
+        if there_is == False:
+            db.session.add(stat)
+            json.append(request2json(n))
+        there_is = False
     db.session.commit()
     return jsonify(json)
 
