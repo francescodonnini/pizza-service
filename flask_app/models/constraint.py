@@ -39,3 +39,9 @@ class Constraint(db.Model):
         self.date = date
 
 
+def constraint_mapper(c: Constraint) -> dict[str, object]:
+    return {
+        'category': c.category.name,
+        'date': c.date.isoformat(),
+        'occurrence': c.occurrence.name
+    }

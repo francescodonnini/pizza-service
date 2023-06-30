@@ -1,11 +1,11 @@
 from flask import abort, request
 
 from flask_app.models.user import Role, User, user2json
-from flask_app.models.constraint import Constraint
 from flask_app.models.request import *
 from flask_app.errors import *
 from datetime import datetime
 from flask_app.models.shift import *
+from flask_app.models.constraint import *
 from sqlalchemy import and_
 
 
@@ -133,5 +133,13 @@ def accept_request():
     })
 
 
+@app.route('/get_constraint', methods=['POST'])
+def get_constraint():
+    rider = request.json['email']
+    constraints = db.session.query(Constraint).filter_by(rider=rider).all()
+    j_constraints = []
+    for c in constraints:
+        j_constraints.append(constraint_mapper(c))
+    return jsonify(j_constraints)
 
 
