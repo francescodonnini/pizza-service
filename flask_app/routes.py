@@ -103,7 +103,6 @@ def show_new_requests():
     for n in new_requests:
         json.append(request2json(n))
         stat = RequestStat(n.date, n.source, recipient, Response.read)
-        db.session.delete(n)
         db.session.add(stat)
     db.session.commit()
     return jsonify(json)
@@ -114,12 +113,19 @@ def accept_request():
     recipient = request.json['recipient']
     source = request.json['source']
     date = datetime.strptime(request.json['date'], '%Y-%m-%d')
-    request_list = db.session.query(RequestStat).filter(and_(RequestStat.source == source, RequestStat.date == date.strftime('%Y-%m-%d'))).all()
-    for r in request_list:
-        db.session.delete(r)
+    req = db.session.query(Request).filter(and_(Request.source == source, Request.date == date.strftime('%Y-%m-%d'))).first()
+    read_reqs = db.session.query(RequestStat).filter(and_(RequestStat.source == source, RequestStat.date == date.strftime('%Y-%m-%d'))).all()
+    for rr in read_reqs:
+        db.session.delete(rr)
     plan = db.session.query(Plan).filter(and_(date.strftime('%Y-%m-%d') >= Plan.start, date.strftime('%Y-%m-%d') <= Plan.end)).first()
+    if plan is None:
+        return jsonify({
+            'code': "451",
+            'message': "Unknown plan"
+        })
     shift = Shift(date, plan.id, recipient)
     db.session.add(shift)
+    db.session.delete(req)
     db.session.commit()
     return jsonify({
         'code': "200",
