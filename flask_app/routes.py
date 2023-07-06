@@ -215,10 +215,18 @@ def publish_plan():
         for r in d['riders']:
             shift = Shift(workday.day, workday.plan, r)
             db.session.add(shift)
-    db.session.commit()
-    return jsonify({
-        "code": "200",
-        "message": "Plan correctly published"
-    })
+    try:
+        db.session.commit()
+        return jsonify({
+            "code": "200",
+            "message": "Plan correctly published"
+        })
+    except exc.IntegrityError as e:
+        return jsonify({
+            "code": "453",
+            "message": "Plan already exists"
+        })
+
+
 
 
