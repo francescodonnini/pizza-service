@@ -200,3 +200,25 @@ def fire_rider():
         'message': "Rider correctly removed"
     })
 
+
+@app.route('/publish_plan', methods=['POST'])
+def publish_plan():
+    start = datetime.strptime(request.json['start'], '%Y-%m-%d')
+    end = datetime.strptime(request.json['end'], '%Y-%m-%d')
+    days = request.json['days']
+    plan = Plan(start, end)
+    db.session.add(plan)
+    db_plan = db.session.query(Plan).filter(and_(Plan.start == start.strftime('%Y-%m-%d'), Plan.end == end.strftime('%Y-%m-%d'))).first()
+    for d in days:
+        workday = Workday(datetime.strptime(d['date'], '%Y-%m-%d'), db_plan.id, int(d['min']), int(d['max']))
+        db.session.add(workday)
+        for r in d['riders']:
+            shift = Shift(workday.day, workday.plan, r)
+            db.session.add(shift)
+    db.session.commit()
+    return jsonify({
+        "code": "200",
+        "message": "Plan correctly published"
+    })
+
+

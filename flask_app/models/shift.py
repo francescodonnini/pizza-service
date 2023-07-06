@@ -5,12 +5,14 @@ class Workday(db.Model):
     __tablename__ = 'workday_table'
     day = db.Column(db.Date, primary_key=True)
     plan = db.Column(db.Integer, db.ForeignKey('plan_table.id'), primary_key=True)
-    numberOfRider = db.Column(db.Integer, nullable=False)
+    minNumberOfRider = db.Column(db.Integer, nullable=False)
+    maxNumberOfRider = db.Column(db.Integer, nullable=False)
 
-    def __init__(self, day, plan, number_of_rider):
+    def __init__(self, day, plan, min_number_rider, max_number_rider):
         self.day = day
         self.plan = plan
-        self.numberOfRider = number_of_rider
+        self.minNumberOfRider = min_number_rider
+        self.maxNumberOfRider = max_number_rider
 
     def __repr__(self):
         return f'<Workday {self.day}, {self.plan}, {self.numberOfRider}>'
